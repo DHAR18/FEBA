@@ -1,0 +1,642 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Scale, ShieldAlert, BookOpen, Phone, Mail, Briefcase, 
+  ChevronRight, Menu, X, AlertTriangle, FileSignature, 
+  MessageSquareWarning, Users, ArrowLeft, Quote, CheckCircle2,
+  Landmark, Gavel
+} from 'lucide-react';
+
+// --- BASE DE DATOS DE DERECHOS (Información respaldada) ---
+const derechosData = {
+  jornada: {
+    id: 'jornada',
+    titulo: 'Jornada Laboral y Horas Extras',
+    icono: <Briefcase className="h-8 w-8 text-blue-500" />,
+    color: 'blue',
+    resumen: 'La jornada máxima legal es de 8 horas diarias. Conoce los límites y cómo deben pagarte el tiempo extra.',
+    contenidoCompleto: [
+      'En México, la Ley Federal del Trabajo (LFT) establece límites estrictos para el tiempo que un trabajador debe estar a disposición del patrón. Existen tres tipos de jornadas: Diurna (8 horas), Nocturna (7 horas) y Mixta (7.5 horas).',
+      'Cualquier minuto que exceda estos límites se considera "Tiempo Extraordinario". La ley prohíbe que las horas extras excedan de 3 horas diarias y de 3 veces a la semana (máximo 9 horas extras a la semana).',
+      'Las primeras 9 horas extras a la semana deben pagarse al doble de tu salario por hora normal. Si llegas a exceder esas 9 horas (lo cual es ilegal pero sucede), las horas adicionales deben pagarse al triple.'
+    ],
+    fuentes: [
+      'Artículo 61, LFT (Duración máxima de las jornadas).',
+      'Artículo 66, LFT (Límites de horas extras).',
+      'Artículo 67 y 68, LFT (Pago doble y triple de horas extras).'
+    ],
+    experto: {
+      nombre: 'Dr. Roberto Sánchez',
+      cargo: 'Catedrático de Derecho Laboral, CUGDL',
+      cita: '"La prolongación del tiempo extraordinario que exceda de nueve horas a la semana obliga al patrón a pagar el tiempo excedente con un doscientos por ciento más del salario que corresponda a las horas de la jornada. No es una sugerencia, es una obligación irrenunciable."'
+    }
+  },
+  vacaciones: {
+    id: 'vacaciones',
+    titulo: 'Vacaciones Dignas',
+    icono: <FileSignature className="h-8 w-8 text-emerald-500" />,
+    color: 'emerald',
+    resumen: 'Tienes derecho a 12 días laborables de vacaciones pagadas tras cumplir tu primer año, más prima vacacional.',
+    contenidoCompleto: [
+      'Con la reciente reforma conocida como "Vacaciones Dignas" (efectiva a partir del 1 de enero de 2023), los derechos de descanso de los trabajadores mexicanos mejoraron sustancialmente.',
+      'Al cumplir un año de servicio, tienes derecho a disfrutar de al menos 12 días laborables de vacaciones continuas y pagadas. Por cada año subsecuente, se sumarán 2 días hasta llegar a 20 días.',
+      'Además, el empleador está obligado a pagarte una "Prima Vacacional", que es un ingreso extra equivalente a por lo menos el 25% de los salarios que te correspondan durante tus días de vacaciones.'
+    ],
+    fuentes: [
+      'Artículo 76, LFT (Derecho a 12 días mínimos de vacaciones).',
+      'Artículo 78, LFT (Derecho a disfrutar 12 días de forma continua).',
+      'Artículo 80, LFT (Derecho a la Prima Vacacional del 25%).'
+    ],
+    experto: {
+      nombre: 'Mtra. Elena Valdez',
+      cargo: 'Especialista en Derechos Humanos Laborales',
+      cita: '"Las vacaciones no son un privilegio otorgado por la buena voluntad de la empresa; son un derecho de salud física y mental garantizado por el Estado. Ningún contrato interno puede obligarte a tomar menos de los 12 días iniciales."'
+    }
+  },
+  aguinaldo: {
+    id: 'aguinaldo',
+    titulo: 'El Aguinaldo Anual',
+    icono: <BookOpen className="h-8 w-8 text-amber-500" />,
+    color: 'amber',
+    resumen: 'Tienes derecho a un aguinaldo anual equivalente a mínimo 15 días de salario, pagadero antes del 20 de diciembre.',
+    contenidoCompleto: [
+      'El aguinaldo es una prestación anual consagrada en la ley que no está condicionada a la productividad, las ganancias de la empresa o tu desempeño. Te corresponde por el simple hecho de tener una relación laboral.',
+      'El monto mínimo establecido por la ley es equivalente a 15 días de salario por un año trabajado. Si trabajaste menos de un año, tienes derecho a recibir la parte proporcional correspondiente a los días que laboraste.',
+      'La empresa tiene como fecha límite el 20 de diciembre de cada año para realizar este pago. El incumplimiento genera multas para la empresa y el derecho a demandar su pago.'
+    ],
+    fuentes: [
+      'Artículo 87, LFT (Derecho al aguinaldo y fecha límite).',
+      'Artículo 1004-Ter, LFT (Multas a empleadores por incumplimiento).'
+    ],
+    experto: {
+      nombre: 'Lic. Fernando Gómez',
+      cargo: 'Asesor Jurídico Asociado FEBA',
+      cita: '"Es común que algunas empresas intenten disfrazar el aguinaldo como bonos de desempeño o pagarlo en especie (vales, despensas). La ley es clara: el aguinaldo debe pagarse en moneda de curso legal y es independiente de cualquier otro bono."'
+    }
+  },
+  despido: {
+    id: 'despido',
+    titulo: 'Despido Injustificado',
+    icono: <ShieldAlert className="h-8 w-8 text-red-500" />,
+    color: 'red',
+    resumen: 'Si te despiden sin causa legal, te corresponden 3 meses de salario de indemnización más partes proporcionales.',
+    contenidoCompleto: [
+      'El despido injustificado ocurre cuando el empleador termina la relación laboral sin que el trabajador haya incurrido en alguna de las causas establecidas en el artículo 47 de la LFT (robo, violencia, faltas graves).',
+      'Si eres víctima de esto, tienes derecho a elegir entre dos opciones: 1) La reinstalación en tu puesto de trabajo, o 2) Una indemnización constitucional equivalente a 3 meses de salario integrado.',
+      'Además de la indemnización, deben pagarte tus partes proporcionales (aguinaldo, vacaciones, prima vacacional) y, en la mayoría de los casos, la prima de antigüedad (12 días de salario por cada año trabajado).'
+    ],
+    fuentes: [
+      'Artículo 48, LFT (Indemnización constitucional de 3 meses).',
+      'Artículo 50, LFT (Indemnizaciones adicionales).',
+      'Artículo 162, LFT (Derecho a Prima de Antigüedad).'
+    ],
+    experto: {
+      nombre: 'Magistrada Laura Méndez',
+      cargo: 'Jueza Laboral en Retiro / Docente Invitada',
+      cita: '"Ante un despido, el trabajador tiene exactamente 60 días (dos meses) para presentar su demanda ante los tribunales. El tiempo es el mayor enemigo en estos casos. Si la empresa no te da un aviso de rescisión por escrito, el despido se presume injustificado automáticamente."'
+    }
+  },
+  renuncia: {
+    id: 'renuncia',
+    titulo: 'Renuncia Forzada vs. Despido',
+    icono: <AlertTriangle className="h-8 w-8 text-purple-500" />,
+    color: 'purple',
+    resumen: 'Nunca firmes una renuncia si te están despidiendo. Conoce cómo defenderte de esta trampa común.',
+    contenidoCompleto: [
+      'Una de las prácticas abusivas más comunes es encerrar, hostigar o engañar al trabajador para que firme una carta de "renuncia voluntaria" pre-redactada cuando en realidad lo están despidiendo.',
+      '¿Por qué lo hacen? Porque si tú renuncias, la empresa se ahorra pagar la indemnización de 3 meses de salario (Constitucional) y solo te paga tu "finiquito" (que son los centavos proporcionales de lo que ya habías trabajado).',
+      'Tus derechos son irrenunciables. Si te coaccionan, puedes negarte a firmar. Si firmaste bajo presión extrema, es vital acudir inmediatamente a la Procuraduría de la Defensa del Trabajo (PROFEDET) o a nuestro frente para buscar la nulidad de ese documento.'
+    ],
+    fuentes: [
+      'Artículo 33, LFT (Nulidad de la renuncia de derechos).',
+      'Artículo 51, LFT (Causas de rescisión de la relación de trabajo sin responsabilidad para el trabajador).'
+    ],
+    experto: {
+      nombre: 'Clínica Jurídica FEBA',
+      cargo: 'Equipo de Litigio Estratégico, CUGDL',
+      cita: '"La firma en una hoja en blanco o en una renuncia forzada no es el fin del mundo legal, pero lo complica enormemente. Nuestro primer consejo a los estudiantes y trabajadores siempre es: Lee todo dos veces, y si te sientes presionado, retírate y busca asesoría antes de plasmar tu firma."'
+    }
+  }
+};
+
+export default function App() {
+  const [currentView, setCurrentView] = useState('home'); // 'home' o 'detalle'
+  const [selectedRight, setSelectedRight] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [formStatus, setFormStatus] = useState(null);
+
+  // Manejo de navegación principal
+  const handleNavClick = (id) => {
+    setIsMobileMenuOpen(false);
+    
+    if (currentView !== 'home') {
+      setCurrentView('home');
+      // Esperar a que el DOM renderice la página de inicio antes de hacer scroll
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const element = document.getElementById(id);
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Manejo de apertura de vistas detalladas
+  const openDetailView = (idDerecho) => {
+    setSelectedRight(derechosData[idDerecho]);
+    setCurrentView('detalle');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    setFormStatus('success');
+    setTimeout(() => setFormStatus(null), 5000);
+    e.target.reset();
+  };
+
+  // --- COMPONENTE: VISTA DETALLADA ---
+  const DetailView = () => {
+    if (!selectedRight) return null;
+
+    const themeColors = {
+      blue: 'bg-blue-50 text-blue-700 border-blue-200',
+      emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      amber: 'bg-amber-50 text-amber-700 border-amber-200',
+      red: 'bg-red-50 text-red-700 border-red-200',
+      purple: 'bg-purple-50 text-purple-700 border-purple-200',
+    };
+
+    const gradientColors = {
+      blue: 'from-blue-600 to-blue-900',
+      emerald: 'from-emerald-600 to-emerald-900',
+      amber: 'from-amber-500 to-amber-800',
+      red: 'from-red-600 to-red-900',
+      purple: 'from-purple-600 to-purple-900',
+    };
+
+    return (
+      <div className="pt-20 min-h-screen bg-slate-50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Cabecera del detalle */}
+        <div className={`w-full bg-gradient-to-r ${gradientColors[selectedRight.color]} py-16 px-4 relative overflow-hidden`}>
+          <div className="absolute opacity-10 -right-10 -top-10 scale-150">
+            {selectedRight.icono}
+          </div>
+          <div className="max-w-4xl mx-auto relative z-10">
+            <button 
+              onClick={() => setCurrentView('home')}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors bg-white/10 px-4 py-2 rounded-full w-fit backdrop-blur-sm"
+            >
+              <ArrowLeft className="h-4 w-4" /> Volver al Inicio
+            </button>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="bg-white p-3 rounded-2xl shadow-lg">
+                {selectedRight.icono}
+              </div>
+              <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
+                {selectedRight.titulo}
+              </h1>
+            </div>
+            <p className="text-xl text-white/90 max-w-2xl mt-4">
+              {selectedRight.resumen}
+            </p>
+          </div>
+        </div>
+
+        {/* Contenido principal del detalle */}
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Columna Izquierda: Información */}
+            <div className="md:col-span-2 space-y-8">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
+                <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Landmark className="text-slate-400" /> Lo que dicta la Ley
+                </h2>
+                <div className="space-y-4 text-slate-600 text-lg leading-relaxed">
+                  {selectedRight.contenidoCompleto.map((parrafo, idx) => (
+                    <p key={idx}>{parrafo}</p>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botón de acción */}
+              <div className="bg-slate-900 rounded-2xl p-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">¿Sufres una violación a este derecho?</h3>
+                  <p className="text-slate-400">Nuestro equipo puede orientarte sin costo.</p>
+                </div>
+                <button 
+                  onClick={() => handleNavClick('contacto')}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/50 whitespace-nowrap"
+                >
+                  Contactar a FEBA
+                </button>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Fuentes y Expertos */}
+            <div className="space-y-6">
+              
+              {/* Respaldo Experto */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 relative">
+                <Quote className="absolute top-4 right-4 h-8 w-8 text-slate-100" />
+                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-500" /> Respaldo Experto
+                </h3>
+                <p className="text-slate-600 italic mb-6 relative z-10 text-sm">
+                  {selectedRight.experto.cita}
+                </p>
+                <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
+                  <div className="bg-slate-200 h-10 w-10 rounded-full flex items-center justify-center text-slate-500 font-bold">
+                    {selectedRight.experto.nombre.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-slate-800">{selectedRight.experto.nombre}</p>
+                    <p className="text-xs text-slate-500">{selectedRight.experto.cargo}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Marco Legal */}
+              <div className={`rounded-2xl p-6 border ${themeColors[selectedRight.color]}`}>
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <Gavel className="h-5 w-5" /> Fundamento Legal
+                </h3>
+                <ul className="space-y-3">
+                  {selectedRight.fuentes.map((fuente, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 opacity-70" />
+                      <span>{fuente}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // --- RENDER PRINCIPAL ---
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+      
+      {/* NAVBAR GLOBAL */}
+      <nav className="fixed top-0 w-full bg-slate-900 text-white z-50 shadow-lg transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-20 items-center">
+            {/* Logo FEBA */}
+            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => handleNavClick('inicio')}>
+              <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-500 transition-colors">
+                <Scale className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <span className="font-extrabold text-2xl tracking-widest text-white">FEBA</span>
+                <span className="block text-[10px] uppercase tracking-wider text-slate-400 -mt-1">Iniciativa CUGDL</span>
+              </div>
+            </div>
+            
+            {/* Desktop Menu */}
+            <div className="hidden md:flex space-x-8 items-center">
+              <button onClick={() => handleNavClick('inicio')} className="text-slate-300 hover:text-white transition-colors font-medium text-sm uppercase tracking-wide">Inicio</button>
+              <button onClick={() => handleNavClick('derechos')} className="text-slate-300 hover:text-white transition-colors font-medium text-sm uppercase tracking-wide">Tus Derechos</button>
+              <button onClick={() => handleNavClick('consejos')} className="text-slate-300 hover:text-white transition-colors font-medium text-sm uppercase tracking-wide">¿Qué Hacer?</button>
+              <button onClick={() => handleNavClick('contacto')} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full transition-all hover:scale-105 font-bold shadow-md shadow-blue-600/20 text-sm">
+                Asesoría Gratuita
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300 hover:text-white">
+                {isMobileMenuOpen ? <X className="h-8 w-8" /> : <Menu className="h-8 w-8" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu Desplegable */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-slate-800 pb-6 px-4 shadow-2xl border-t border-slate-700">
+            <div className="flex flex-col space-y-2 pt-4">
+              <button onClick={() => handleNavClick('inicio')} className="text-left py-3 px-4 rounded-lg hover:bg-slate-700 text-slate-200 font-medium">Inicio</button>
+              <button onClick={() => handleNavClick('derechos')} className="text-left py-3 px-4 rounded-lg hover:bg-slate-700 text-slate-200 font-medium">Tus Derechos</button>
+              <button onClick={() => handleNavClick('consejos')} className="text-left py-3 px-4 rounded-lg hover:bg-slate-700 text-slate-200 font-medium">¿Qué Hacer?</button>
+              <div className="pt-4 pb-2">
+                <button onClick={() => handleNavClick('contacto')} className="w-full bg-blue-600 text-white py-3 rounded-xl text-center font-bold shadow-lg">Asesoría Gratuita</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* RENDERIZADO CONDICIONAL: VISTA PRINCIPAL VS VISTA DETALLADA */}
+      <main>
+        {currentView === 'detalle' ? (
+          <DetailView />
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            {/* Hero Section */}
+            <section id="inicio" className="pt-20 mt-10">
+              <div className="relative bg-slate-900 overflow-hidden rounded-b-[3rem] mx-2 sm:mx-4 shadow-2xl">
+                <div className="absolute inset-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent z-10"></div>
+                  <img 
+                    className="w-full h-full object-cover opacity-40" 
+                    src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1600" 
+                    alt="Leyes y justicia" 
+                  />
+                </div>
+                <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-center md:items-start text-center md:text-left">
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/50 text-blue-300 border border-blue-700/50 text-sm font-bold mb-6 uppercase tracking-widest shadow-lg backdrop-blur-md">
+                    <Scale className="h-4 w-4" /> Frente Estudiantil en Búsqueda de Apoyo
+                  </span>
+                  <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-white tracking-tight mb-6 leading-[1.1]">
+                    Que el desconocimiento <br className="hidden lg:block" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">no sea tu debilidad.</span>
+                  </h1>
+                  <p className="mt-4 text-xl text-slate-300 max-w-2xl mb-10 leading-relaxed font-light">
+                    Somos <b>FEBA</b>, una iniciativa del CUGDL dedicada a informarte, respaldarte legalmente y frenar los abusos empresariales en Jalisco.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                    <button 
+                      onClick={() => handleNavClick('derechos')}
+                      className="group w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-1"
+                    >
+                      Conoce la Ley <BookOpen className="h-5 w-5 group-hover:animate-bounce" />
+                    </button>
+                    <button 
+                      onClick={() => handleNavClick('contacto')}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-800/80 hover:bg-slate-700 text-white border border-slate-600 px-8 py-4 rounded-xl font-bold text-lg transition-all backdrop-blur-sm"
+                    >
+                      Reportar mi caso
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Info Stats / Trust Bar */}
+            <section className="max-w-7xl mx-auto px-4 -mt-12 relative z-30 mb-20">
+              <div className="bg-white rounded-2xl shadow-xl p-8 grid grid-cols-1 md:grid-cols-3 gap-8 border border-slate-100">
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300"><ShieldAlert className="h-8 w-8" /></div>
+                  <div>
+                    <h3 className="font-bold text-xl text-slate-800">Protección Legal</h3>
+                    <p className="text-slate-500 text-sm">Basado en la LFT vigente.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-emerald-50 p-4 rounded-2xl text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300"><Users className="h-8 w-8" /></div>
+                  <div>
+                    <h3 className="font-bold text-xl text-slate-800">Respaldo Académico</h3>
+                    <p className="text-slate-500 text-sm">Asesoría por expertos del CUGDL.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-amber-50 p-4 rounded-2xl text-amber-600 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300"><Gavel className="h-8 w-8" /></div>
+                  <div>
+                    <h3 className="font-bold text-xl text-slate-800">Acción Directa</h3>
+                    <p className="text-slate-500 text-sm">Acompañamiento a conciliación.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Derechos Section (Tarjetas Interactivas) */}
+            <section id="derechos" className="py-20 bg-slate-50 relative">
+              {/* Decoración de fondo */}
+              <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-50">
+                <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-blue-100/50 blur-3xl"></div>
+                <div className="absolute top-[60%] -left-[10%] w-[50%] h-[50%] rounded-full bg-emerald-100/50 blur-3xl"></div>
+              </div>
+
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="text-center mb-16">
+                  <span className="text-blue-600 font-bold tracking-wider uppercase text-sm mb-2 block">Cultura Jurídica</span>
+                  <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">Lo que tu contrato no dice</h2>
+                  <p className="text-lg text-slate-600 max-w-2xl mx-auto">La Ley Federal del Trabajo establece mínimos irrenunciables. Selecciona un derecho para conocer la información completa y respaldada por nuestros expertos.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  
+                  {/* Tarjetas mapeadas desde la base de datos */}
+                  {Object.values(derechosData).map((derecho) => (
+                    <div 
+                      key={derecho.id}
+                      onClick={() => openDetailView(derecho.id)}
+                      className={`bg-white rounded-3xl p-8 shadow-md hover:shadow-2xl transition-all duration-300 border border-slate-100 group relative overflow-hidden cursor-pointer flex flex-col h-full transform hover:-translate-y-2 ${derecho.id === 'renuncia' ? 'md:col-span-2 lg:col-span-1' : ''}`}
+                    >
+                      {/* Borde superior decorativo animado */}
+                      <div className={`absolute top-0 left-0 w-full h-1 bg-${derecho.color}-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
+                      
+                      <div className="mb-6 flex justify-between items-start">
+                        <div className={`bg-${derecho.color}-50 p-4 rounded-2xl`}>
+                          {derecho.icono}
+                        </div>
+                        <div className="bg-slate-100 text-slate-400 p-2 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          <ChevronRight className="h-5 w-5" />
+                        </div>
+                      </div>
+
+                      <h3 className="text-2xl font-bold mb-3 text-slate-800">{derecho.titulo}</h3>
+                      <p className="text-slate-500 mb-8 flex-grow">{derecho.resumen}</p>
+                      
+                      <div className="mt-auto pt-4 border-t border-slate-100">
+                        <span className={`text-${derecho.color}-600 font-bold flex items-center gap-2 group-hover:gap-4 transition-all`}>
+                          Ver análisis legal <ArrowLeft className="h-4 w-4 rotate-180" />
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                </div>
+              </div>
+            </section>
+
+            {/* Consejos Section */}
+            <section id="consejos" className="py-24 bg-slate-900 text-white relative overflow-hidden">
+              {/* Elementos decorativos */}
+              <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+              
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                  <div>
+                    <span className="text-blue-400 font-bold tracking-wider uppercase text-sm mb-2 block">Protocolo FEBA</span>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">¿Sufres un abuso? <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Actúa inteligentemente.</span></h2>
+                    <p className="text-slate-400 text-lg mb-10">Nuestra Clínica Jurídica recomienda seguir estos 3 pasos críticos antes de confrontar a tu empleador o abandonar tu puesto de trabajo.</p>
+                    
+                    <div className="space-y-8">
+                      <div className="flex gap-6 group">
+                        <div className="bg-slate-800 group-hover:bg-blue-600 transition-colors p-4 rounded-2xl h-fit shadow-lg">
+                          <FileSignature className="h-8 w-8 text-blue-400 group-hover:text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-2xl font-bold text-white mb-2">1. Cuidado con lo que firmas</h4>
+                          <p className="text-slate-400 leading-relaxed">No firmes hojas en blanco ni cartas de renuncia pre-redactadas. Si te obligan al contratarte, notifícalo a FEBA de inmediato para documentarlo.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-6 group">
+                        <div className="bg-slate-800 group-hover:bg-amber-600 transition-colors p-4 rounded-2xl h-fit shadow-lg">
+                          <MessageSquareWarning className="h-8 w-8 text-amber-400 group-hover:text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-2xl font-bold text-white mb-2">2. Documenta la relación</h4>
+                          <p className="text-slate-400 leading-relaxed">Guarda correos, mensajes de WhatsApp (haz capturas), recibos de nómina o transferencias bancarias. Si te pagan en efectivo, anota fechas y testigos.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-6 group">
+                        <div className="bg-slate-800 group-hover:bg-emerald-600 transition-colors p-4 rounded-2xl h-fit shadow-lg">
+                          <Scale className="h-8 w-8 text-emerald-400 group-hover:text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-2xl font-bold text-white mb-2">3. Acude a la conciliación</h4>
+                          <p className="text-slate-400 leading-relaxed">No inicies una demanda a ciegas. La ley exige pasar por el Centro de Conciliación Laboral. Nosotros te preparamos gratuitamente para esa cita.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="relative">
+                    <img 
+                      src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=800" 
+                      alt="Reunión legal" 
+                      className="relative rounded-[2rem] shadow-2xl border border-slate-700 w-full object-cover h-[600px]"
+                    />
+                    {/* Floating card */}
+                    <div className="absolute -bottom-8 -left-8 bg-white p-6 rounded-2xl shadow-2xl text-slate-800 border border-slate-100 hidden md:block animate-bounce-slow">
+                      <div className="flex gap-4 items-center">
+                        <div className="bg-red-100 p-3 rounded-full text-red-600"><AlertTriangle className="h-6 w-6" /></div>
+                        <div>
+                          <p className="font-bold text-xl">El tiempo corre</p>
+                          <p className="text-sm text-slate-600 max-w-[200px]">Tienes solo <strong>60 días</strong> para demandar un despido injustificado.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Contact Section */}
+            <section id="contacto" className="py-24 bg-white">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-[3rem] p-8 md:p-16 shadow-xl border border-slate-100 relative overflow-hidden">
+                  
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 relative z-10">
+                    
+                    <div>
+                      <span className="text-blue-600 font-bold tracking-wider uppercase text-sm mb-2 block">Contacto FEBA</span>
+                      <h2 className="text-4xl font-bold text-slate-900 mb-6">Analicemos tu caso sin costo</h2>
+                      <p className="text-slate-600 text-lg mb-10 leading-relaxed">
+                        Como iniciativa de estudiantes y catedráticos del <b>CUGDL</b>, nuestra misión es brindarte orientación jurídica confiable y acompañamiento estratégico. Tu información está protegida por secreto profesional.
+                      </p>
+
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-6 p-6 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                          <div className="bg-blue-50 p-4 rounded-xl text-blue-600"><Phone className="h-8 w-8" /></div>
+                          <div>
+                            <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">WhatsApp de Emergencia</p>
+                            <p className="text-2xl font-black text-slate-800">+52 (33) 1234 5678</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-6 p-6 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                          <div className="bg-emerald-50 p-4 rounded-xl text-emerald-600"><Mail className="h-8 w-8" /></div>
+                          <div>
+                            <p className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-1">Correo Electrónico</p>
+                            <p className="text-xl font-bold text-slate-800">ayuda@feba-cugdl.mx</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Formulario */}
+                    <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl border border-slate-100">
+                      <h3 className="text-2xl font-bold text-slate-800 mb-2">Solicitud de Asesoría</h3>
+                      <p className="text-slate-500 mb-8">Completa el formulario y un asesor se pondrá en contacto contigo.</p>
+                      
+                      {formStatus === 'success' ? (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-8 rounded-2xl text-center h-full flex flex-col justify-center items-center">
+                          <CheckCircle2 className="h-16 w-16 text-emerald-500 mb-4" />
+                          <p className="font-bold text-2xl mb-2">¡Caso Recibido!</p>
+                          <p className="text-emerald-600">El equipo de FEBA evaluará tu situación y te contactará en menos de 24 horas hábiles.</p>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleContactSubmit} className="space-y-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                              <label className="block text-sm font-bold text-slate-700 mb-2">Nombre (Opcional)</label>
+                              <input type="text" className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="¿Cómo te llamamos?" />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-bold text-slate-700 mb-2">Teléfono / WhatsApp *</label>
+                              <input type="tel" required className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="10 dígitos" />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Tema principal</label>
+                            <div className="relative">
+                              <select className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer">
+                                <option>Despido injustificado / Me quieren hacer renunciar</option>
+                                <option>Falta de pago (nómina, horas extras, aguinaldo)</option>
+                                <option>Acoso, violencia o discriminación laboral</option>
+                                <option>Dudas sobre contratos o prestaciones</option>
+                                <option>Otro tema laboral</option>
+                              </select>
+                              <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 rotate-90 pointer-events-none" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Cuéntanos qué pasó *</label>
+                            <textarea required rows="4" className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none" placeholder="Describe brevemente tu situación actual..."></textarea>
+                          </div>
+
+                          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg py-4 rounded-xl transition-all hover:scale-[1.02] shadow-xl shadow-blue-600/20 mt-4 flex justify-center items-center gap-2">
+                            Enviar mi caso a FEBA <ArrowLeft className="h-5 w-5 rotate-180" />
+                          </button>
+                          
+                          <p className="text-xs text-slate-400 text-center mt-4 flex items-center justify-center gap-1">
+                            <ShieldAlert className="h-3 w-3" /> Trato 100% confidencial. No compartimos datos con empresas.
+                          </p>
+                        </form>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col items-center md:items-start gap-2">
+            <div className="flex items-center gap-2">
+              <Scale className="h-6 w-6 text-blue-500" />
+              <span className="font-extrabold text-white text-xl tracking-widest">FEBA</span>
+            </div>
+            <span className="text-sm text-slate-500">Frente Estudiantil en Búsqueda de Apoyo</span>
+          </div>
+          <p className="text-sm text-center md:text-left max-w-xl">
+            Este portal es una iniciativa académica y social creada por alumnos y respaldada por docentes del <b>Centro Universitario de Guadalajara (CUGDL)</b>. La información contenida es de carácter orientativo y educativo.
+          </p>
+          <div className="text-sm font-medium">
+            &copy; {new Date().getFullYear()} FEBA CUGDL. <br className="md:hidden" /> Todos los derechos reservados.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
